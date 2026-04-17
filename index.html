@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SP-WEB / DNB SAMPLER</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #141414;
+    --body: #1e1e1e;
+    --panel: #252525;
+    --border: #333;
+    --pad-off: #1a1a1a;
+    --pad-border: #3a3a3a;
+    --pad-active-a: #ff6b00;
+    --pad-glow-a: #ff4400;
+    --pad-active-b: #00c8ff;
+    --pad-glow-b: #0088cc;
+    --lcd-bg: #0d1a0d;
+    --lcd-text: #39ff14;
+    --lcd-dim: #1a4a1a;
+    --text: #aaa;
+    --text-bright: #ddd;
+    --accent: #ff6b00;
+    --knob: #2e2e2e;
+    --screw: #333;
+  }
+
+  body {
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--text);
+    user-select: none;
+  }
+
+  .unit {
+    background: var(--body);
+    border: 1px solid #2a2a2a;
+    border-radius: 6px;
+    padding: 24px;
+    width: 740px;
+    box-shadow: 0 8px 48px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.03);
+    position: relative;
+  }
+
+  .unit::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 6px;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 3px,
+      rgba(255,255,255,0.004) 3px,
+      rgba(255,255,255,0.004) 4px
+    );
+    pointer-events: none;
+  }
+
+  /* HEADER */
+  .header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .brand {
+    flex: 1;
+  }
+
+  .brand-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 4px;
+    color: #555;
+    text-transform: uppercase;
+  }
+
+  .model-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    color: var(--text-bright);
+    line-height: 1;
+    margin-top: 2px;
+  }
+
+  .model-name span {
+    color: var(--accent);
+  }
+
+  /* LCD DISPLAY */
+  .lcd {
+    background: var(--lcd-bg);
+    border: 1px solid #1a3a1a;
+    border-radius: 3px;
+    padding: 10px 14px;
+    width: 280px;
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 64px;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .lcd::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 2px,
+      rgba(0,0,0,0.15) 2px,
+      rgba(0,0,0,0.15) 3px
+    );
+    pointer-events: none;
+  }
+
+  .lcd-row {
+    font-size: 11px;
+    color: var(--lcd-dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    line-height: 1.3;
+  }
+
+  .lcd-main {
+    font-size: 15px;
+    color: var(--lcd-text);
+    letter-spacing: 1px;
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .lcd-status {
+    font-size: 10px;
+    color: var(--lcd-dim);
+    margin-top: 6px;
+    letter-spacing: 2px;
+  }
+
+  .lcd-status.playing {
+    color: var(--lcd-text);
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* LOADING BAR */
+  .load-bar-wrap {
+    height: 3px;
+    background: #111;
+    border-radius: 2px;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+
+  .load-bar {
+    height: 100%;
+    background: var(--lcd-text);
+    width: 0%;
+    transition: width 0.2s;
+  }
+
+  /* CONTROLS ROW */
+  .controls-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .side-switch {
+    display: flex;
+    background: #111;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .side-btn {
+    padding: 8px 20px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    background: transparent;
+    border: none;
+    color: #555;
+    cursor: pointer;
+    transition: all 0.1s;
+  }
+
+  .side-btn.active-a {
+    background: var(--pad-active-a);
+    color: #000;
+  }
+
+  .side-btn.active-b {
+    background: var(--pad-active-b);
+    color: #000;
+  }
+
+  .stop-btn {
+    padding: 8px 16px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    background: #1a0a0a;
+    border: 1px solid #4a1a1a;
+    color: #ff3333;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.1s;
+    text-transform: uppercase;
+  }
+
+  .stop-btn:active {
+    background: #ff3333;
+    color: #000;
+  }
+
+  .vol-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+  }
+
+  .vol-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #444;
+    text-transform: uppercase;
+  }
+
+  .vol-knob {
+    width: 36px;
+    height: 36px;
+    background: radial-gradient(circle at 35% 35%, #3a3a3a, #1a1a1a);
+    border-radius: 50%;
+    border: 1px solid #3a3a3a;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .vol-knob::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: 1px;
+  }
+
+  input[type="range"].vol-slider {
+    width: 80px;
+    -webkit-appearance: none;
+    height: 3px;
+    background: #333;
+    border-radius: 2px;
+    outline: none;
+  }
+
+  input[type="range"].vol-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  /* PAD GRID */
+  .pad-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+  }
+
+  .pad {
+    aspect-ratio: 1;
+    background: var(--pad-off);
+    border: 1px solid var(--pad-border);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 6px 8px;
+    position: relative;
+    transition: border-color 0.05s, background 0.05s;
+    overflow: hidden;
+  }
+
+  .pad::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 30% 30%, rgba(255,255,255,0.04), transparent 60%);
+    pointer-events: none;
+  }
+
+  .pad-num {
+    position: absolute;
+    top: 7px;
+    left: 9px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: #444;
+    letter-spacing: 1px;
+  }
+
+  .pad-label {
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: #555;
+    text-align: center;
+    text-transform: uppercase;
+    line-height: 1.3;
+    word-break: break-all;
+  }
+
+  /* A-side active */
+  .pad.playing-a {
+    background: #2a1200;
+    border-color: var(--pad-active-a);
+    box-shadow: 0 0 0 1px var(--pad-active-a), 0 0 20px rgba(255, 107, 0, 0.25), inset 0 0 30px rgba(255, 80, 0, 0.1);
+  }
+
+  .pad.playing-a .pad-num { color: var(--pad-active-a); }
+  .pad.playing-a .pad-label { color: #cc5500; }
+
+  .pad:active {
+    transform: scale(0.97);
+  }
+
+  /* B-side active */
+  .pad.playing-b {
+    background: #001525;
+    border-color: var(--pad-active-b);
+    box-shadow: 0 0 0 1px var(--pad-active-b), 0 0 20px rgba(0, 200, 255, 0.25), inset 0 0 30px rgba(0, 140, 200, 0.1);
+  }
+
+  .pad.playing-b .pad-num { color: var(--pad-active-b); }
+  .pad.playing-b .pad-label { color: #0088cc; }
+
+  /* loaded indicator */
+  .pad.loaded::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    right: 5px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #333;
+  }
+
+  .pad.loaded-ok::after {
+    background: #2a6a2a;
+  }
+
+  .pad.loaded-err::after {
+    background: #6a1a1a;
+  }
+
+  /* FOOTER */
+  .footer {
+    margin-top: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .screws {
+    display: flex;
+    gap: 8px;
+  }
+
+  .screw {
+    width: 10px;
+    height: 10px;
+    background: radial-gradient(circle at 40% 40%, #3a3a3a, #1e1e1e);
+    border-radius: 50%;
+    border: 1px solid #2a2a2a;
+    position: relative;
+  }
+
+  .screw::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(45deg);
+    width: 6px;
+    height: 1px;
+    background: #555;
+  }
+
+  .footer-text {
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: #333;
+    text-transform: uppercase;
+  }
+
+  /* VU meter */
+  .vu-wrap {
+    display: flex;
+    gap: 2px;
+    align-items: flex-end;
+    height: 20px;
+  }
+
+  .vu-bar {
+    width: 4px;
+    background: #222;
+    border-radius: 1px;
+    transition: height 0.08s ease-out;
+  }
+
+  /* waveform viz */
+  .waveform {
+    width: 100%;
+    height: 3px;
+    background: #111;
+    border-radius: 1px;
+    overflow: hidden;
+    margin-bottom: 4px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .waveform.active {
+    opacity: 1;
+  }
+
+  .waveform-inner {
+    height: 100%;
+    background: var(--pad-active-a);
+    width: 0%;
+    transition: width 0.1s linear;
+  }
+
+  .side-b .waveform-inner {
+    background: var(--pad-active-b);
+  }
+</style>
+</head>
+<body>
+
+<div class="unit">
+  <div class="header">
+    <div class="brand">
+      <div class="brand-name">Web Sampler</div>
+      <div class="model-name">SP-WEB <span>MK2</span></div>
+    </div>
+    <div class="lcd" id="lcd">
+      <div class="lcd-row" id="lcd-side">SIDE: A</div>
+      <div class="lcd-main" id="lcd-track">-- READY --</div>
+      <div class="lcd-status" id="lcd-status">STANDBY</div>
+      <div class="load-bar-wrap"><div class="load-bar" id="load-bar"></div></div>
+    </div>
+  </div>
+
+  <div class="controls-row">
+    <div class="side-switch">
+      <button class="side-btn active-a" id="btn-a" onclick="setSide('A')">A</button>
+      <button class="side-btn" id="btn-b" onclick="setSide('B')">B</button>
+    </div>
+    <button class="stop-btn" onclick="stopAll()">■ STOP</button>
+    <div class="vol-group">
+      <span class="vol-label">VOL</span>
+      <input type="range" class="vol-slider" min="0" max="1" step="0.01" value="0.9" id="vol" oninput="setVol(this.value)">
+    </div>
+    <div class="vu-wrap" id="vu">
+      <div class="vu-bar" style="height:4px"></div>
+      <div class="vu-bar" style="height:6px"></div>
+      <div class="vu-bar" style="height:8px"></div>
+      <div class="vu-bar" style="height:5px"></div>
+      <div class="vu-bar" style="height:7px"></div>
+      <div class="vu-bar" style="height:4px"></div>
+      <div class="vu-bar" style="height:6px"></div>
+      <div class="vu-bar" style="height:9px"></div>
+    </div>
+  </div>
+
+  <div class="pad-grid" id="pad-grid"></div>
+
+  <div class="footer">
+    <div class="screws">
+      <div class="screw"></div>
+      <div class="screw"></div>
+    </div>
+    <div class="footer-text" id="footer-info">DNB SAMPLER v1.0 // 20 TRACKS</div>
+    <div class="screws">
+      <div class="screw"></div>
+      <div class="screw"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const TRACKS = {
+  A: [
+    'GlitchLoop1.wav','GlitchLoop2.wav','GlitchLoop3.wav','GlitchLoop4.wav','GlitchLoop5.wav',
+    'Loop1.wav','Loop2.wav','Loop3.wav','Loop4.wav','Loop5.wav'
+  ],
+  B: [
+    'Loop6.wav','Loop7.wav','Loop8.wav','Loop9.wav','Loop10.wav',
+    'Loop11.wav','Loop12.wav','Loop13.wav','Loop14.wav','Loop15.wav'
+  ]
+};
+
+const FOLDER = 'dnb/';
+let ctx = null;
+let gainNode = null;
+let analyser = null;
+let buffers = { A: new Array(10).fill(null), B: new Array(10).fill(null) };
+let currentSource = null;
+let currentPadEl = null;
+let currentSide = 'A';
+let volValue = 0.9;
+let vuRaf = null;
+
+function initAudio() {
+  if (ctx) return;
+  ctx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive', sampleRate: 44100 });
+  gainNode = ctx.createGain();
+  gainNode.gain.value = volValue;
+  analyser = ctx.createAnalyser();
+  analyser.fftSize = 64;
+  gainNode.connect(analyser);
+  analyser.connect(ctx.destination);
+}
+
+function setVol(v) {
+  volValue = parseFloat(v);
+  if (gainNode) gainNode.gain.setTargetAtTime(volValue, ctx.currentTime, 0.01);
+}
+
+async function loadAll() {
+  initAudio();
+  let loaded = 0;
+  const total = 20;
+  const bar = document.getElementById('load-bar');
+  const lcdStatus = document.getElementById('lcd-status');
+  const lcdTrack = document.getElementById('lcd-track');
+
+  lcdTrack.textContent = '-- LOADING --';
+  lcdStatus.textContent = 'BUFFERING...';
+
+  const sides = ['A','B'];
+  for (const side of sides) {
+    for (let i = 0; i < TRACKS[side].length; i++) {
+      const url = FOLDER + TRACKS[side][i];
+      const padEl = document.querySelector(`[data-side="${side}"][data-idx="${i}"]`);
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('404');
+        const ab = await res.arrayBuffer();
+        buffers[side][i] = await ctx.decodeAudioData(ab);
+        if (padEl) padEl.classList.add('loaded-ok');
+      } catch(e) {
+        console.warn('Failed:', url, e.message);
+        if (padEl) padEl.classList.add('loaded-err');
+      }
+      loaded++;
+      bar.style.width = (loaded / total * 100) + '%';
+    }
+  }
+
+  lcdTrack.textContent = '-- READY --';
+  lcdStatus.textContent = 'LOADED ' + loaded + '/' + total;
+  bar.style.background = loaded === total ? 'var(--lcd-text)' : '#ff6600';
+}
+
+function playPad(side, idx) {
+  initAudio();
+
+  if (ctx.state === 'suspended') ctx.resume();
+
+  // stop current
+  if (currentSource) {
+    try { currentSource.stop(0); } catch(e) {}
+    currentSource.disconnect();
+    currentSource = null;
+  }
+  if (currentPadEl) {
+    currentPadEl.classList.remove('playing-a','playing-b');
+  }
+
+  const buf = buffers[side][idx];
+  if (!buf) {
+    lcd('ERR', TRACKS[side][idx], 'NO BUFFER');
+    return;
+  }
+
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.loop = false;
+  src.connect(gainNode);
+  src.start(0);
+  src.onended = () => {
+    if (currentSource === src) {
+      currentSource = null;
+      if (currentPadEl) {
+        currentPadEl.classList.remove('playing-a','playing-b');
+        currentPadEl = null;
+      }
+      lcd(currentSide, '-- READY --', 'STOPPED');
+      stopVU();
+    }
+  };
+
+  currentSource = src;
+  const padEl = document.querySelector(`[data-side="${side}"][data-idx="${idx}"]`);
+  currentPadEl = padEl;
+  if (padEl) padEl.classList.add(side === 'A' ? 'playing-a' : 'playing-b');
+
+  const name = TRACKS[side][idx].replace('.wav','');
+  lcd('SIDE: ' + side, name, '▶ PLAYING');
+  startVU();
+}
+
+function stopAll() {
+  if (currentSource) {
+    try { currentSource.stop(0); } catch(e) {}
+    currentSource.disconnect();
+    currentSource = null;
+  }
+  if (currentPadEl) {
+    currentPadEl.classList.remove('playing-a','playing-b');
+    currentPadEl = null;
+  }
+  lcd(currentSide, '-- READY --', 'STOPPED');
+  stopVU();
+}
+
+function setSide(s) {
+  currentSide = s;
+  document.getElementById('btn-a').className = 'side-btn' + (s === 'A' ? ' active-a' : '');
+  document.getElementById('btn-b').className = 'side-btn' + (s === 'B' ? ' active-b' : '');
+  document.getElementById('lcd-side').textContent = 'SIDE: ' + s;
+  renderPads();
+}
+
+function lcd(row, main, status) {
+  document.getElementById('lcd-side').textContent = row;
+  document.getElementById('lcd-track').textContent = main;
+  const el = document.getElementById('lcd-status');
+  el.textContent = status;
+  el.className = 'lcd-status' + (status.includes('PLAYING') ? ' playing' : '');
+}
+
+// VU animation
+function startVU() {
+  const bars = document.querySelectorAll('.vu-bar');
+  const data = new Uint8Array(analyser.frequencyBinCount);
+  function frame() {
+    analyser.getByteFrequencyData(data);
+    const step = Math.floor(data.length / bars.length);
+    bars.forEach((b, i) => {
+      const val = data[i * step] / 255;
+      const h = Math.max(2, val * 20);
+      b.style.height = h + 'px';
+      const side = currentSource ? currentSide : 'A';
+      b.style.background = side === 'A' ? `rgba(255,107,0,${0.3 + val * 0.7})` : `rgba(0,200,255,${0.3 + val * 0.7})`;
+    });
+    vuRaf = requestAnimationFrame(frame);
+  }
+  if (vuRaf) cancelAnimationFrame(vuRaf);
+  frame();
+}
+
+function stopVU() {
+  if (vuRaf) cancelAnimationFrame(vuRaf);
+  document.querySelectorAll('.vu-bar').forEach(b => {
+    b.style.height = '4px';
+    b.style.background = '#222';
+  });
+}
+
+// PAD RENDERING
+function renderPads() {
+  const grid = document.getElementById('pad-grid');
+  grid.innerHTML = '';
+  const tracks = TRACKS[currentSide];
+  tracks.forEach((name, i) => {
+    const pad = document.createElement('div');
+    pad.className = 'pad loaded';
+    pad.dataset.side = currentSide;
+    pad.dataset.idx = i;
+
+    const num = document.createElement('div');
+    num.className = 'pad-num';
+    num.textContent = String(i + 1).padStart(2,'0');
+
+    const label = document.createElement('div');
+    label.className = 'pad-label';
+    label.textContent = name.replace('.wav','');
+
+    pad.appendChild(num);
+    pad.appendChild(label);
+
+    pad.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      playPad(currentSide, i);
+    });
+
+    // check if already loaded
+    if (buffers[currentSide][i]) pad.classList.add('loaded-ok');
+
+    // restore playing state
+    if (currentPadEl && currentPadEl.dataset.side === currentSide && parseInt(currentPadEl.dataset.idx) === i) {
+      pad.classList.add(currentSide === 'A' ? 'playing-a' : 'playing-b');
+      currentPadEl = pad;
+    }
+
+    grid.appendChild(pad);
+  });
+}
+
+// KEYBOARD shortcuts 1-0 keys
+document.addEventListener('keydown', e => {
+  if (e.repeat) return;
+  const keyMap = {'1':0,'2':1,'3':2,'4':3,'5':4,'6':5,'7':6,'8':7,'9':8,'0':9};
+  if (e.key in keyMap) {
+    playPad(currentSide, keyMap[e.key]);
+  }
+  if (e.key === 'a' || e.key === 'A') setSide('A');
+  if (e.key === 'b' || e.key === 'B') setSide('B');
+  if (e.key === ' ') { e.preventDefault(); stopAll(); }
+});
+
+// INIT
+renderPads();
+window.addEventListener('click', () => {
+  if (!ctx) { initAudio(); loadAll(); }
+}, { once: true });
+
+// auto-start loading
+setTimeout(() => { initAudio(); loadAll(); }, 100);
+</script>
+
+</body>
+</html>
